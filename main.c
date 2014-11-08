@@ -40,6 +40,46 @@ int update_menu(WINDOW* menu, int message);
 void set_food_coord(Snake *Snakey, Food *byte);
 int check_ate_food(Snake *snakey, Food *byte);
 
+enum keyPresses
+{
+    GO_LEFT,
+    GO_RIGHT,
+    GO_UP,
+    GO_DOWN,
+    QUIT,
+    PAUSE_KEY,
+    RESET,
+    NOP,
+};
+
+int getkey()
+{
+    switch ( getch() )
+    {
+    case KEY_LEFT:
+        return GO_LEFT;
+    case KEY_RIGHT:
+        return GO_RIGHT;
+    case KEY_UP:
+        return GO_UP;
+    case KEY_DOWN:
+        return GO_DOWN;
+    case 'x':
+    case 'q':
+        return QUIT;
+    case 'p':
+        return PAUSE_KEY;
+    case 'r':
+        return RESET;
+    case ERR:
+        return ERR; // Declared elsewhere
+    default:
+        // Look GPIO pins for input
+        // Return NOP otherwise
+        return NOP;
+    }
+}
+
 int main()
 {
     // Randomize the seed
@@ -84,7 +124,7 @@ int main()
     int cur_dir = RIGHT;
     game_state = PLAY;
 
-    while((ch = getch()) != 'x'){
+    while((ch = getkey() ) != QUIT){
         update_screen(snakey_world, &snakey, cur_dir, &byte);
         switch(game_state){
             case PLAY:
@@ -92,30 +132,30 @@ int main()
                     switch(ch){
                         //if were moving make sure we dont move back to collide with the
                         //part right behind the head
-                        case KEY_UP:
+                        case GO_UP:
                             if(cur_dir != DOWN)
                                 cur_dir = UP;
                             break;
-                        case KEY_DOWN:
+                        case GO_DOWN:
                             if(cur_dir != UP)
                                 cur_dir = DOWN;
                             break;
-                        case KEY_RIGHT:
+                        case GO_RIGHT:
                             if(cur_dir != LEFT)
                                 cur_dir = RIGHT;
                             break;
-                        case KEY_LEFT:
+                        case GO_LEFT:
                             if(cur_dir != RIGHT)
                                 cur_dir = LEFT;
                             break;
-                        case 'p':
+                        case PAUSE_KEY:
                             game_state = PAUSE;
                             break;
-                        case 'r':
+                        case RESET:
                             setup_snakey(&snakey, sbegx, sbegy);
                             cur_dir = RIGHT;
                             break;
-                        default:
+                        default: // NOP
                             break;
                     }
                 }
@@ -123,10 +163,10 @@ int main()
             case PAUSE:
                 if(ch != ERR){
                     switch(ch){
-                        case 'p':
+                        case PAUSE_KEY:
                             game_state = PLAY;
                             break;
-                        case 'r':
+                        case RESET:
                             setup_snakey(&snakey, sbegx, sbegy);
                             set_food_coord(&snakey, &byte);
                             game_state = PLAY;
@@ -142,7 +182,7 @@ int main()
 
                 if(ch != ERR){
                     switch (ch) {
-                        case 'r': //reset snakey and then reset the screen
+                        case RESET: //reset snakey and then reset the screen
                             update_menu(menu_win, 0);
                             setup_snakey(&snakey, sbegx, sbegy);
                             set_food_coord(&snakey, &byte);
