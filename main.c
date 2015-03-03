@@ -3,6 +3,7 @@
 #include <time.h> // necessary to seed rand()
 
 #define TICKRATE 150
+#define FAST_TICKRATE 75
 
 #define WORLD_WIDTH 50
 #define WORLD_HEIGHT 20
@@ -50,6 +51,7 @@ int main()
     //hide the cursor, we don't want to see it
     int offsetx, offsety, menu_offsety, ch;
 
+    int tick_rate = TICKRATE;
     initscr();
     noecho();
     cbreak();
@@ -84,7 +86,7 @@ int main()
     int cur_dir = RIGHT;
     game_state = PLAY;
 
-    while((ch = getch()) != 'x'){
+    while((ch = getch()) != 'x' && ch != 'q'){
         update_screen(snakey_world, &snakey, cur_dir, &byte);
         switch(game_state){
             case PLAY:
@@ -114,6 +116,10 @@ int main()
                     case 'r':
                         setup_snakey(&snakey, sbegx, sbegy);
                         cur_dir = RIGHT;
+                        break;
+                    case ' ':
+                        tick_rate = tick_rate == FAST_TICKRATE ? TICKRATE : FAST_TICKRATE;
+                        timeout(tick_rate);
                         break;
                     default:
                         break;
