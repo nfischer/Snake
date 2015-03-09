@@ -2,8 +2,8 @@
 #include <stdlib.h>
 #include <time.h> // necessary to seed rand()
 
-#define TICKRATE 150
-#define FAST_TICKRATE 75
+#define TICKRATE 120
+#define FAST_TICKRATE 65
 
 #define WORLD_WIDTH 50
 #define WORLD_HEIGHT 20
@@ -33,7 +33,7 @@ typedef struct SnakeData {
 
 int check_collision(Snake *snakey);
 int setup_snakey(Snake* snakey, int begx, int begy);
-int update_snakey_pos(Snake *snakey, int direction);
+int update_snakey_pos(Snake *snakey, int direction, WINDOW *win);
 void grow_snakey(Snake *snakey);
 int update_screen(WINDOW *win, Snake *snakey, int direction, Food *byte);
 int update_menu(WINDOW* menu, int message);
@@ -170,6 +170,12 @@ int main()
     return 0;
 }
 
+void lose_game(WINDOW *win, Snake* snakey)
+{
+    mvwaddch(win, snakey->body[0].y, snakey->body[0].x, 'X');
+    game_state = LOST;
+    return;
+}
 
 int setup_snakey(Snake *snakey, int begx, int begy){
     snakey->cur_snakey_length = SNAKEY_MIN_LENGTH;
@@ -195,7 +201,7 @@ int update_screen(WINDOW *win, Snake *snakey, int direction, Food *byte){
     int cur_snakey_len = snakey->cur_snakey_length;
 
     if(game_state == PLAY)
-        update_snakey_pos(snakey, direction);
+        update_snakey_pos(snakey, direction, win);
 
     for(i=1; i<cur_snakey_len; i++)
         mvwaddch(win, snakey->body[i].y, snakey->body[i].x, '#');
@@ -215,8 +221,7 @@ int update_screen(WINDOW *win, Snake *snakey, int direction, Food *byte){
     //check if player caused snakey to collide, update game_state if the head
     //of the snake intersects with any other parts of the snake.
     if(check_collision(snakey) == 1){
-        mvwaddch(win, snakey->body[0].y, snakey->body[0].x, 'X');
-        game_state = LOST;
+        lose_game(win, snakey);
         collided = 1;
         //flash();
     }
@@ -229,7 +234,7 @@ int update_screen(WINDOW *win, Snake *snakey, int direction, Food *byte){
     return 0;
 }
 
-int update_snakey_pos(Snake *snakey, int direction){
+int update_snakey_pos(Snake *snakey, int direction, WINDOW *win){
     int i;
     int cur_snakey_len = snakey->cur_snakey_length;
 
@@ -243,16 +248,16 @@ int update_snakey_pos(Snake *snakey, int direction){
     //wrap around if at border
     switch(direction){
         case UP:
-            y-1 == 0 ? y = WORLD_HEIGHT-2 : y--;
+            y-1 == 0 ? lose_game(win, snakey) : y--;
             break;
         case DOWN:
-            y+1 == WORLD_HEIGHT-1 ? y = 1 : y++;
+            y+1 == WORLD_HEIGHT-1 ? lose_game(win, snakey) : y++;
             break;
         case RIGHT:
-            x+1 == WORLD_WIDTH-1 ? x = 1 : x++;
+            x+1 == WORLD_WIDTH-1 ? lose_game(win, snakey) : x++;
             break;
         case LEFT:
-            x-1 == 0 ? x = WORLD_WIDTH-2 : x--;
+            x-1 == 0 ? lose_game(win, snakey) : x--;
             break;
         default:
             break;
