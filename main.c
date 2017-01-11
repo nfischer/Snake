@@ -11,6 +11,7 @@
 #define SNAKEY_MAX_LENGTH 80
 #define SNAKEY_MIN_LENGTH 5
 
+
 enum direction {UP, DOWN, RIGHT, LEFT};
 enum gamestate {PLAY, PAUSE, LOST};
 
